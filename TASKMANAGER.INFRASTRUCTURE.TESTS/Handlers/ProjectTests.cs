@@ -97,5 +97,25 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
 
             projects.Count.Should().Be(2);
         }
+
+        [Fact]
+        public async Task DeleteProject_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var deleteProjectCom = new DeleteProjectCommand(Guid.NewGuid())
+            {
+                UserId = 2
+            };
+
+            try
+            {
+                var result = await _deleteHandler.Handle(deleteProjectCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
