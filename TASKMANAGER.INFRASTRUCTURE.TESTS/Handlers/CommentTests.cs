@@ -101,5 +101,27 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             var comment = await _commentRepository.Object.GetByIdAsync(commentId.ToString());
             comment.Text.Should().Be(commentText);
         }
+
+        [Fact]
+        public async Task UpdateCommentByDifferentUser_ThrowForbiddenException()
+        {
+            var updateCommentCom = new UpdateCommentCommand()
+            {
+                Comment = "Test 2",
+                PublicId = Guid.NewGuid(),
+                UserId = 2
+            };
+
+            try
+            {
+                var result = await _updateHandler.Handle(updateCommentCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
