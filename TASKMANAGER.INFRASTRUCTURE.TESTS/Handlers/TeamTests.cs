@@ -22,6 +22,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<ITeamUserRepository> _teamUserRepository;
         private readonly CreateTeamHandler _createHandler;
         private readonly DeleteTeamHandler _deleteHandler;
+        private readonly UpdateTeamHandler _updateHandler;
 
         public TeamTests()
         {
@@ -37,6 +38,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 _teamRepository.Object,
                 _permissionService.Object,
                 _teamUserRepository.Object);
+
+            _updateHandler = new UpdateTeamHandler(
+                _teamRepository.Object,
+                _permissionService.Object);
         }
 
         [Fact]
@@ -113,6 +118,24 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+
+        [Fact]
+        public async Task UpdateTeam()
+        {
+            string name = "Test team 2";
+            var request = new UpdateTeamCommand()
+            {
+                Name = name,
+                PublicId = Guid.NewGuid(),
+                UserId = 1
+            };
+
+            var result = await _updateHandler.Handle(request, CancellationToken.None);
+
+            result.Should().Be(Unit.Value);
+            var project = await _teamRepository.Object.GetByIdAsync(1);
+            project.Name.Should().Be(name);
         }
 
     }
