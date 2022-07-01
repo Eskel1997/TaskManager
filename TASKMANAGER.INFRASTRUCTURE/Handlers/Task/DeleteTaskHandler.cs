@@ -23,6 +23,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Task
 
         public async Task<Unit> Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
         {
+            var task = await _taskRepository.GetByIdAsync(request.PublicId.ToString());
+            await _taskRepository.DeleteAsync(task);
+            await _taskRepository.SaveChangesAsync();
+
             return Unit.Value;
         }
     }
