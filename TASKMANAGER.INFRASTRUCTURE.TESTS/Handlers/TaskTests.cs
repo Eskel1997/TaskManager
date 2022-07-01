@@ -58,5 +58,31 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
 
             tasks.Count.Should().Be(4);
         }
+
+        [Fact]
+        public async Task CreateTask_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var createTaskCom = new CreateTaskCommand()
+            {
+                Name = "Test task 1",
+                Description = "test",
+                OwnerId = Guid.NewGuid(),
+                Priority = DB.Enums.TaskPriorityEnum.Medium,
+                ProjectId = Guid.NewGuid(),
+                Status = DB.Enums.TaskStatusEnum.Added,
+                UserId = 1
+            };
+
+            try
+            {
+                var result = await _createHandler.Handle(createTaskCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
