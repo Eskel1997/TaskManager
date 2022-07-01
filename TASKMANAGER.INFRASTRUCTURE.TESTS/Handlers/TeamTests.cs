@@ -19,16 +19,24 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
     {
         private readonly Mock<ITeamRepository> _teamRepository;
         private readonly Mock<IPermissionsService> _permissionService;
+        private readonly Mock<ITeamUserRepository> _teamUserRepository;
         private readonly CreateTeamHandler _createHandler;
+        private readonly DeleteTeamHandler _deleteHandler;
 
         public TeamTests()
         {
             _teamRepository = MockTeamRepository.GetTeamRepository();
             _permissionService = MockPermissionService.GetPermissionService();
+            _teamUserRepository = MockTeamUserRepository.GetTeamUserRepository();
 
             _createHandler = new CreateTeamHandler(
                 _teamRepository.Object,
                 _permissionService.Object);
+
+            _deleteHandler = new DeleteTeamHandler(
+                _teamRepository.Object,
+                _permissionService.Object,
+                _teamUserRepository.Object);
         }
 
         [Fact]
@@ -68,6 +76,23 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+
+        [Fact]
+        public async Task DeleteTeam()
+        {
+            var request = new DeleteTeamCommand(Guid.NewGuid())
+            {
+                UserId = 1
+            };
+
+            var result = await _deleteHandler.Handle(request, CancellationToken.None);
+
+            result.Should().Be(Unit.Value);
+
+            var teams = await _teamRepository.Object.GetAllAsync();
+
+            teams.Count.Should().Be(2);
         }
 
     }
