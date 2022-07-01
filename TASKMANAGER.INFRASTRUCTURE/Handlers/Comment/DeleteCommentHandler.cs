@@ -18,6 +18,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Comment
 
         public async Task<Unit> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
         {
+            var comment = await _commentRepository.GetByIdAsync(request.PublicId.ToString());
+            await _commentRepository.DeleteAsync(comment);
+            await _commentRepository.SaveChangesAsync();
+
             return Unit.Value;
         }
     }
