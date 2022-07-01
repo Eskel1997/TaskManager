@@ -22,6 +22,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<IUserRepository> _userRepository;
         private readonly Mock<IPermissionsService> _permissionService;
         private readonly CreateTaskHandler _createHandler;
+        private readonly DeleteTaskHandler _deleteHandler;
 
         public TaskTests()
         {
@@ -32,6 +33,9 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             _createHandler = new CreateTaskHandler(
                 _projectRepository.Object,
                 _userRepository.Object,
+                _taskRepository.Object,
+                _permissionService.Object);
+            _deleteHandler = new DeleteTaskHandler(
                 _taskRepository.Object,
                 _permissionService.Object);
         }
@@ -83,6 +87,22 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+        [Fact]
+        public async Task DeleteTask()
+        {
+            var deleteTaskCom = new DeleteTaskCommand(Guid.NewGuid())
+            {
+                UserId = 1
+            };
+
+            var result = await _deleteHandler.Handle(deleteTaskCom, CancellationToken.None);
+
+            result.Should().Be(Unit.Value);
+
+            var tasks = await _taskRepository.Object.GetAllAsync();
+
+            tasks.Count().Should().Be(2);
         }
     }
 }
