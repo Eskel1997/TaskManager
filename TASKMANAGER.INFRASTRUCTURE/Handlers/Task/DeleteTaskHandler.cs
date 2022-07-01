@@ -23,6 +23,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Task
 
         public async Task<Unit> Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
         {
+            var userPermissions = await _permissionsService.GetUserPermissions(request.UserId);
+            if (!userPermissions.SuperAdmin && !userPermissions.CanAddEditTask)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             var task = await _taskRepository.GetByIdAsync(request.PublicId.ToString());
             await _taskRepository.DeleteAsync(task);
             await _taskRepository.SaveChangesAsync();
