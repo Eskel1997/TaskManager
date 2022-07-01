@@ -60,5 +60,25 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             var comments = await _commentRepository.Object.GetAllAsync();
             comments.Count.Should().Be(2);
         }
+
+        [Fact]
+        public async Task DeleteCommentByDifferentUser_ThrowForbiddenException()
+        {
+            var deleteCommentCom = new DeleteCommentCommand()
+            {
+                PublicId = Guid.NewGuid(),
+                UserId = 2
+            };
+            try
+            {
+                var result = await _deleteHandler.Handle(deleteCommentCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
