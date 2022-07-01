@@ -30,6 +30,12 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Team
         }
         public async Task<Unit> Handle(AddTeamUserCommand request, CancellationToken cancellationToken)
         {
+            var team = await _teamRepository.GetByIdAsync(request.PublicId.ToString());
+            var user = await _userRepository.GetByIdAsync(request.TeamUserId.ToString());
+            var teamUser = new UserTeam(user.Id, team.Id, request.UserId);
+            await _teamUserRepository.AddAsync(teamUser);
+            await _teamUserRepository.SaveChangesAsync();
+
             return Unit.Value;
         }
     }
