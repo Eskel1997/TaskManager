@@ -52,5 +52,28 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
 
             projects.Count.Should().Be(4);
         }
+
+        [Fact]
+        public async Task CreateProject_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var createProjectCom = new CreateProjectCommand()
+            {
+                Name = "Test project 1",
+                Status = DB.Enums.ProjectStatusEnum.Added,
+                TeamId = Guid.NewGuid(),
+                UserId = 2
+            };
+
+            try
+            {
+                var result = await _createHandler.Handle(createProjectCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
