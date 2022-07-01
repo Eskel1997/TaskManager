@@ -23,6 +23,11 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Project
 
         public async Task<Unit> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
         {
+            var project = await _projectRepository.GetByIdAsync(request.PublicId.ToString());
+
+            await _projectRepository.DeleteAsync(project);
+            await _projectRepository.SaveChangesAsync();
+
             return Unit.Value;
         }
     }
