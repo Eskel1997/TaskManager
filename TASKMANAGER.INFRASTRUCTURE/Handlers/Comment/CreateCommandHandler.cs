@@ -22,7 +22,11 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Comment
 
         public async Task<Unit> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
         {
-           
+            var task = await _taskRepository.GetByIdAsync(request.TaskId.ToString());
+            var comment = new DB.Entities.Concrete.Comment(request.Comment, task.Id, request.UserId);
+
+            await _commentRepository.AddAsync(comment);
+            await _commentRepository.SaveChangesAsync();
             return Unit.Value;
         }
     }
