@@ -162,5 +162,38 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             task.Name.Should().Be(name);
             task.Priority.Should().Be((int)priority);
         }
+
+        [Fact]
+        public async Task UpdateTask_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var description = "Testowy opis";
+            var name = "aktualizacja zadania";
+            var id = Guid.NewGuid();
+            var priority = DB.Enums.TaskPriorityEnum.Medium;
+            var ownerId = Guid.NewGuid();
+            var status = DB.Enums.TaskStatusEnum.Ended;
+            var updateTaskCom = new UpdateTaskCommand()
+            {
+                Description = description,
+                Name = name,
+                PublicId = id,
+                ProjectId = Guid.NewGuid(),
+                Priority = priority,
+                OwnerId = ownerId,
+                UserId = 2,
+                Status = status
+            };
+
+            try
+            {
+                var result = await _updateHandler.Handle(updateTaskCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
