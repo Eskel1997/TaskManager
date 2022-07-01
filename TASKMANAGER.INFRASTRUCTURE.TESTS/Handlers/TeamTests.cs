@@ -20,15 +20,18 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<ITeamRepository> _teamRepository;
         private readonly Mock<IPermissionsService> _permissionService;
         private readonly Mock<ITeamUserRepository> _teamUserRepository;
+        private readonly Mock<IUserRepository> _userRepository;
         private readonly CreateTeamHandler _createHandler;
         private readonly DeleteTeamHandler _deleteHandler;
         private readonly UpdateTeamHandler _updateHandler;
+        private readonly AddTeamUserHandler _addTeamUserHandler;
 
         public TeamTests()
         {
             _teamRepository = MockTeamRepository.GetTeamRepository();
             _permissionService = MockPermissionService.GetPermissionService();
             _teamUserRepository = MockTeamUserRepository.GetTeamUserRepository();
+            _userRepository = MockUserRepository.GetUserTypeRepository();
 
             _createHandler = new CreateTeamHandler(
                 _teamRepository.Object,
@@ -42,6 +45,11 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             _updateHandler = new UpdateTeamHandler(
                 _teamRepository.Object,
                 _permissionService.Object);
+
+            _addTeamUserHandler = new AddTeamUserHandler(
+                _userRepository.Object,
+                _teamRepository.Object,
+                _teamUserRepository.Object);
         }
 
         [Fact]
@@ -160,5 +168,19 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             }
         }
 
+        [Fact]
+        public async Task AddUserToTeam()
+        {
+            var request = new AddTeamUserCommand(Guid.NewGuid(), Guid.NewGuid())
+            {
+                UserId = 1,
+            };
+
+            var result = await _addTeamUserHandler.Handle(request, CancellationToken.None);
+            var teamUsers = await _teamUserRepository.Object.GetTeamUsersAsync(1);
+
+            result.Should().Be(Unit.Value);
+            teamUsers.Count.Should().Be(4);
+        }
     }
 }
