@@ -42,7 +42,15 @@ namespace TASKMANAGER.INFRASTRUCTURE.Services.Concrete
 
         public async Task<User> RegisterUserAsync(string name, string pictureUrl, string lastName, string username, string email, string password)
         {
-            var user = new User();
+            var existingUser = await _userRepository.GetByEmailAsync(email);
+            if (existingUser != null)
+                throw new TaskManagerException(new ErrorCode("User with this email exist", HttpStatusCode.BadRequest));
+            string salt = _encryptionManager.GetSalt();
+            string hash = _encryptionManager.GetHash(password, salt);
+            User user = new User(name, pictureUrl, lastName, username, email, hash, salt);
+
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
 
             return user;
         }
