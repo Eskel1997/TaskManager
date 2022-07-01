@@ -18,12 +18,14 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<ITaskRepository> _taskRepository;
         private readonly Mock<ICommentRepository> _commentRepository;
         private readonly CreateCommandHandler _createHandler;
+        private readonly DeleteCommentHandler _deleteHandler;
 
         public CommentTests()
         {
             _taskRepository = MockTaskRepository.GetTaskRepository();
             _commentRepository = MockCommentRepository.GetCommentRepository();
             _createHandler = new CreateCommandHandler(_commentRepository.Object, _taskRepository.Object);
+            _deleteHandler = new DeleteCommentHandler(_commentRepository.Object);
         }
 
         [Fact]
@@ -41,6 +43,22 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
 
             var comments = await _commentRepository.Object.GetAllAsync();
             comments.Count.Should().Be(4);
+        }
+
+        [Fact]
+        public async Task DeleteComment()
+        {
+            var deleteCommentCom = new DeleteCommentCommand()
+            {
+                PublicId = Guid.NewGuid(),
+                UserId = 1
+            };
+
+            var result = await _deleteHandler.Handle(deleteCommentCom, CancellationToken.None);
+            result.Should().Be(Unit.Value);
+
+            var comments = await _commentRepository.Object.GetAllAsync();
+            comments.Count.Should().Be(2);
         }
     }
 }
