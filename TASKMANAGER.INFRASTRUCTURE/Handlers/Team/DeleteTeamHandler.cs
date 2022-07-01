@@ -26,6 +26,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Team
 
         public async Task<Unit> Handle(DeleteTeamCommand request, CancellationToken cancellationToken)
         {
+            var userPermissions = await _permissionsService.GetUserPermissions(request.UserId);
+            if (!userPermissions.SuperAdmin && !userPermissions.CanAddEditTeam)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             var team = await _teamRepository.GetByIdAsync(request.PublicId.ToString());
             var teamUsers = await _teamUserRepository.GetTeamUsersAsync(team.Id);
             await _teamUserRepository.RemoveTeamUsersAsync(teamUsers);
