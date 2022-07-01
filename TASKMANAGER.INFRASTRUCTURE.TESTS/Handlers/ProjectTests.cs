@@ -147,5 +147,32 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             project.Name.Should().Be(name);
             project.Status.Should().Be((int)DB.Enums.ProjectStatusEnum.InProgress);
         }
+
+        [Fact]
+        public async Task UpdateProject_WithoutPermissions_ThrowsForbiddenException()
+        {
+            Guid publicId = Guid.NewGuid();
+            Guid teamId = Guid.NewGuid();
+            string name = "Test project 2";
+            var updateProjectCom = new UpdateProjectCommand()
+            {
+                Name = name,
+                UserId = 2,
+                PublicId = publicId,
+                Status = DB.Enums.ProjectStatusEnum.InProgress,
+                TeamId = teamId,
+            };
+
+            try
+            {
+                var result = await _updateHandler.Handle(updateProjectCom, CancellationToken.None);
+                result.Should().Be(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
     }
 }
