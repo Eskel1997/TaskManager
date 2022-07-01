@@ -25,6 +25,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly DeleteTeamHandler _deleteHandler;
         private readonly UpdateTeamHandler _updateHandler;
         private readonly AddTeamUserHandler _addTeamUserHandler;
+        private readonly RemoveTeamUserHandler _removeTeamUserHandler;
 
         public TeamTests()
         {
@@ -50,6 +51,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 _userRepository.Object,
                 _teamRepository.Object,
                 _teamUserRepository.Object);
+            _removeTeamUserHandler = new RemoveTeamUserHandler(
+               _teamRepository.Object,
+               _userRepository.Object,
+               _teamUserRepository.Object);
         }
 
         [Fact]
@@ -181,6 +186,19 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
 
             result.Should().Be(Unit.Value);
             teamUsers.Count.Should().Be(4);
+        }
+
+        [Fact]
+        public async Task RemoveUserFromTeam()
+        {
+            var request = new RemoveTeamUserCommand(Guid.NewGuid(), Guid.NewGuid());
+
+            var result = await _removeTeamUserHandler.Handle(request, CancellationToken.None);
+
+            var teamUsers = await _teamUserRepository.Object.GetTeamUsersAsync(1);
+
+            result.Should().Be(Unit.Value);
+            teamUsers.Count.Should().Be(2);
         }
     }
 }
