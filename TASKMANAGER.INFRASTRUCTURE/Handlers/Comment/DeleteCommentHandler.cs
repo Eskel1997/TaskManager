@@ -19,6 +19,9 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Comment
         public async Task<Unit> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
         {
             var comment = await _commentRepository.GetByIdAsync(request.PublicId.ToString());
+            if (comment.CreatedById != request.UserId)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             await _commentRepository.DeleteAsync(comment);
             await _commentRepository.SaveChangesAsync();
 
