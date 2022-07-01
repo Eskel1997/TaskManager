@@ -20,6 +20,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Comment
         public async Task<Unit> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
         {
             var comment = await _commentRepository.GetByIdAsync(request.PublicId.ToString());
+
+            if (comment.CreatedById != request.UserId)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             comment.ChangeText(request.Comment);
             await _commentRepository.UpdateAsync(comment);
             await _commentRepository.SaveChangesAsync();
