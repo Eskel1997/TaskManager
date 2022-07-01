@@ -70,7 +70,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 Priority = DB.Enums.TaskPriorityEnum.Medium,
                 ProjectId = Guid.NewGuid(),
                 Status = DB.Enums.TaskStatusEnum.Added,
-                UserId = 1
+                UserId = 2
             };
 
             try
