@@ -25,6 +25,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Project
 
         public async Task<Unit> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
         {
+            var team = await _teamRepository.GetByIdAsync(request.TeamId.ToString());
+            var project = new DB.Entities.Concrete.Project(request.Name, request.Status, team.Id);
+            await _projectRepository.AddAsync(project);
+            await _projectRepository.SaveChangesAsync();
             return Unit.Value;
         }
     }
