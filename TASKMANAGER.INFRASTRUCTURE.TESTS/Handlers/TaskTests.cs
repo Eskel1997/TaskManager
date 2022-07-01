@@ -23,6 +23,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<IPermissionsService> _permissionService;
         private readonly CreateTaskHandler _createHandler;
         private readonly DeleteTaskHandler _deleteHandler;
+        private readonly UpdateTaskHandler _updateHandler;
 
         public TaskTests()
         {
@@ -36,6 +37,11 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 _taskRepository.Object,
                 _permissionService.Object);
             _deleteHandler = new DeleteTaskHandler(
+                _taskRepository.Object,
+                _permissionService.Object);
+            _updateHandler = new UpdateTaskHandler(
+                _projectRepository.Object,
+                _userRepository.Object,
                 _taskRepository.Object,
                 _permissionService.Object);
         }
@@ -123,6 +129,38 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+
+        [Fact]
+        public async Task UpdateTask()
+        {
+            var description = "Testowy opis";
+            var name = "aktualizacja zadania";
+            var id = Guid.NewGuid();
+            var priority = DB.Enums.TaskPriorityEnum.Medium;
+            var ownerId = Guid.NewGuid();
+            var status = DB.Enums.TaskStatusEnum.Ended;
+            var updateTaskCom = new UpdateTaskCommand()
+            {
+                Description = description,
+                Name = name,
+                PublicId = id,
+                ProjectId = Guid.NewGuid(),
+                Priority = priority,
+                OwnerId = ownerId,
+                UserId = 1,
+                Status = status
+            };
+
+
+            var result = await _updateHandler.Handle(updateTaskCom, CancellationToken.None);
+            result.Should().Be(Unit.Value);
+
+            var task = await _taskRepository.Object.GetByIdAsync(id.ToString());
+            task.Status.Should().Be((int)status);
+            task.Description.Should().Be(description);
+            task.Name.Should().Be(name);
+            task.Priority.Should().Be((int)priority);
         }
     }
 }
