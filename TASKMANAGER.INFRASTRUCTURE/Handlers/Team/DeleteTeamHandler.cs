@@ -26,6 +26,12 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Team
 
         public async Task<Unit> Handle(DeleteTeamCommand request, CancellationToken cancellationToken)
         {
+            var team = await _teamRepository.GetByIdAsync(request.PublicId.ToString());
+            var teamUsers = await _teamUserRepository.GetTeamUsersAsync(team.Id);
+            await _teamUserRepository.RemoveTeamUsersAsync(teamUsers);
+            await _teamRepository.DeleteAsync(team);
+            await _teamRepository.SaveChangesAsync();
+
             return Unit.Value;
         }
     }
