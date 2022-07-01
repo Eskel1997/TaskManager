@@ -22,6 +22,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Team
 
         public async Task<Unit> Handle(CreateTeamCommand request, CancellationToken cancellationToken)
         {
+            var userPermissions = await _permissionsService.GetUserPermissions(request.UserId);
+            if (!userPermissions.SuperAdmin && !userPermissions.CanAddEditTeam)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             var team = new DB.Entities.Concrete.Team(request.Name, request.UserId);
 
             await _teamRepository.AddAsync(team);
