@@ -22,6 +22,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<IPermissionsService> _permissionService;
         private readonly CreateProjectHandler _createHandler;
         private readonly DeleteProjectHandler _deleteHandler;
+        private readonly UpdateProjectHandler _updateHandler;
 
         public ProjectTests()
         {
@@ -36,6 +37,11 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             _deleteHandler = new DeleteProjectHandler(
               _projectRepository.Object,
               _permissionService.Object);
+
+            _updateHandler = new UpdateProjectHandler(
+                _projectRepository.Object,
+                _teamRepository.Object,
+                _permissionService.Object);
         }
 
         [Fact]
@@ -116,6 +122,30 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+
+        [Fact]
+        public async Task UpdateProject()
+        {
+            Guid publicId = Guid.NewGuid();
+            Guid teamId = Guid.NewGuid();
+            string name = "Test project 2";
+            var updateProjectCom = new UpdateProjectCommand()
+            {
+                Name = name,
+                UserId = 1,
+                PublicId = publicId,
+                Status = DB.Enums.ProjectStatusEnum.InProgress,
+                TeamId = teamId,
+            };
+
+            var result = await _updateHandler.Handle(updateProjectCom, CancellationToken.None);
+
+            result.Should().Be(Unit.Value);
+
+            var project = await _projectRepository.Object.GetByIdAsync(1);
+            project.Name.Should().Be(name);
+            project.Status.Should().Be((int)DB.Enums.ProjectStatusEnum.InProgress);
         }
     }
 }
