@@ -28,6 +28,15 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Task
 
         public async Task<Unit> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
         {
+            var project = await _projectRepository.GetByIdAsync(request.ProjectId.ToString());
+            var user = await _userRepository.GetByIdAsync(request.OwnerId.ToString());
+            var userId = user?.Id ?? request.UserId;
+
+            var task = new DB.Entities.Concrete.Task(request.Name, (int)request.Priority,
+                request.Description, project.Id, request.UserId, userId, (int)request.Status);
+
+            await _taskRepository.AddAsync(task);
+            await _taskRepository.SaveChangesAsync();
             return Unit.Value;
         }
     }
