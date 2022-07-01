@@ -25,6 +25,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Project
 
         public async Task<Unit> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {
+            var userPermissions = await _permissionsService.GetUserPermissions(request.UserId);
+            if (!userPermissions.SuperAdmin && !userPermissions.CanAddEditProject)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             var team = await _teamRepository.GetByIdAsync(request.TeamId.ToString());
             var project = await _projectRepository.GetByIdAsync(request.PublicId.ToString());
 
