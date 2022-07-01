@@ -49,5 +49,26 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             teams.Count.Should().Be(4);
         }
 
+        [Fact]
+        public async Task CreateTeam_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var createTeamCom = new CreateTeamCommand()
+            {
+                Name = "Test team",
+                UserId = 2
+            };
+
+            try
+            {
+                var result = await _createHandler.Handle(createTeamCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
+
     }
 }
