@@ -138,5 +138,27 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             project.Name.Should().Be(name);
         }
 
+        [Fact]
+        public async Task UpdateTeam_WithoutPermissions_ThrowsForbiddenException()
+        {
+            var updateTeamCom = new UpdateTeamCommand()
+            {
+                PublicId = Guid.NewGuid(),
+                Name = "Testowy zespół",
+                UserId = 2
+            };
+
+            try
+            {
+                var result = await _updateHandler.Handle(updateTeamCom, CancellationToken.None);
+                result.Should().NotBe(Unit.Value);
+            }
+            catch (TaskManagerException ex)
+            {
+                ex.Should().BeOfType<TaskManagerException>();
+                ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+            }
+        }
+
     }
 }
