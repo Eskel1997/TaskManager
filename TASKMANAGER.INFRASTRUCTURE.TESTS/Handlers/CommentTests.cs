@@ -19,6 +19,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
         private readonly Mock<ICommentRepository> _commentRepository;
         private readonly CreateCommandHandler _createHandler;
         private readonly DeleteCommentHandler _deleteHandler;
+        private readonly UpdateCommentHandler _updateHandler;
 
         public CommentTests()
         {
@@ -26,6 +27,7 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
             _commentRepository = MockCommentRepository.GetCommentRepository();
             _createHandler = new CreateCommandHandler(_commentRepository.Object, _taskRepository.Object);
             _deleteHandler = new DeleteCommentHandler(_commentRepository.Object);
+            _updateHandler = new UpdateCommentHandler(_commentRepository.Object);
         }
 
         [Fact]
@@ -79,6 +81,25 @@ namespace TASKMANAGER.INFRASTRUCTURE.TESTS.Handlers
                 ex.Should().BeOfType<TaskManagerException>();
                 ex.ErrorCode.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
             }
+        }
+
+        [Fact]
+        public async Task UpdateComment()
+        {
+            var commentId = Guid.NewGuid();
+            var commentText = "Test2";
+            var updateCommentCom = new UpdateCommentCommand()
+            {
+                Comment = commentText,
+                PublicId = commentId,
+                UserId = 1
+            };
+
+            var result = await _updateHandler.Handle(updateCommentCom, CancellationToken.None);
+            result.Should().Be(Unit.Value);
+
+            var comment = await _commentRepository.Object.GetByIdAsync(commentId.ToString());
+            comment.Text.Should().Be(commentText);
         }
     }
 }
