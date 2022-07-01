@@ -22,6 +22,10 @@ namespace TASKMANAGER.INFRASTRUCTURE.Handlers.Team
 
         public async Task<Unit> Handle(UpdateTeamCommand request, CancellationToken cancellationToken)
         {
+            var userPermissions = await _permissionsService.GetUserPermissions(request.UserId);
+            if (!userPermissions.SuperAdmin && !userPermissions.CanAddEditTeam)
+                throw new TaskManagerException(ErrorCode.NoPermission);
+
             var team = await _teamRepository.GetByIdAsync(request.PublicId.ToString());
 
             team.ChangeName(request.Name);
